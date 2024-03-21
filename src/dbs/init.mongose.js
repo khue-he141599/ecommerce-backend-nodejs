@@ -1,6 +1,9 @@
 const { default: mongoose } = require("mongoose");
 const { countConnection } = require("../helpers/check-connection");
-const connectString = "mongodb://localhost:27017/shopDEV";
+const {
+    db: { host, port, name },
+} = require("../configs/config.mongodb");
+const connectString = `mongodb://${host}:${port}/${name}`;
 
 //singleton
 class Database {
@@ -12,7 +15,7 @@ class Database {
         mongoose
             .connect(connectString, {
                 // kiem tra xem co bao nhieu ket noi khong su dung thi lay de su dung cho tac vu khac khong can open va close thu cong
-                // se khong the vuot qua maxPoolSize, 
+                // se khong the vuot qua maxPoolSize,
                 // neu ma nhieu hon 50 connect thi connect tu 51 tro di se phai doi khi nao co connect free thi su dung
                 maxPoolSize: 100,
             })

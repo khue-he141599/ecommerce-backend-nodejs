@@ -14,11 +14,15 @@ app.use(compression());
 
 //init middleware
 
+console.log(process.env);
+
 //init db => khong can dong connect lien tuc vi mongodb ho tro dong mo 1 cac linh hoat
 // muon disconnect thi su dung mongodb.disconnect
 require("./dbs/init.mongose");
 checkOverload();
 //init routes
+
+app.use('/', require('./routes/index'));
 
 //handle error
 

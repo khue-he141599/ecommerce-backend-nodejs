@@ -1,10 +1,13 @@
+const AccessService = require("../services/access.service");
+
 class AccessController {
-    signUp = async (req, res, next) => {
+    static signUp = async (req, res, next) => {
         try {
             console.log("signUp", req.body);
+            const createUser = await AccessService.signUp(req.body);
             return res.status(200).json({
                 code: "success",
-                metadata: { id: 1 },
+                metadata: createUser,
             });
         } catch (e) {
             next(e);
@@ -12,4 +15,4 @@ class AccessController {
     };
 }
 
-module.exports = new AccessController();
+module.exports = AccessController;

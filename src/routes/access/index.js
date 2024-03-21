@@ -1,7 +1,7 @@
 const express = require("express");
-const accessController = require("../../controllers/access.controller");
 const router = express.Router();
+const AccessController = require("../../controllers/access.controller");
 
-router.post("/shop/signup", accessController.signUp);
+router.post("/shop/signup", AccessController.signUp);
 
 module.exports = router;

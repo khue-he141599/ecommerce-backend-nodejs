@@ -1,8 +1,10 @@
 const shopModel = require("../models/shop.model");
 const bcrypt = require("bcrypt");
-const crypto = require("crypto");
+const crypto = require("node:crypto");
 const KeyTokenService = require("./keyToken.service");
 const { createTokenPair } = require("../auth/authUtils");
+const { getInforData } = require("../utils");
+const { findByEmail } = require("./shop.service");
 
 const RoleShop = {
     SHOP: "SHOP",
@@ -12,6 +14,34 @@ const RoleShop = {
 };
 
 class AccessService {
+    static login = async ({ email, password, refreshToken }) => {
+        const foundShop = await findByEmail({ email });
+        if (!foundShop) {
+            throw new Error("Shop not found");
+        }
+
+        const match = bcrypt.compare(password, foundShop.password);
+
+        if (!match) {
+            throw new Error("Authentication failed");
+        }
+
+        const privateKey = crypto.randomBytes(64).toString("hex");
+        const publicKey = crypto.randomBytes(64).toString("hex");
+        const { _id: userId } = foundShop._id;
+        const tokens = await createTokenPair({ userId: userId, email }, publicKey, privateKey);
+
+        await KeyTokenService.createKeyToken({ userId: userId, publicKey, privateKey, refreshToken: tokens.refreshToken });
+
+        return {
+            code: 201,
+            metadata: {
+                shop: getInforData({ fileds: ["_id", "name", "email"], object: foundShop }),
+                tokens,
+            },
+        };
+    };
+
     static signUp = async ({ name, email, password }) => {
         try {
             const shop = await shopModel.findOne({ email }).lean();
@@ -26,34 +56,23 @@ class AccessService {
             const newShop = await shopModel.create({ name, email, password: hashPassword, roles: [RoleShop.SHOP] });
 
             if (newShop) {
-                const { privateKey, publicKey } = crypto.generateKeyPairSync("rsa", {
-                    modulusLength: 4096,
-                    publicKeyEncoding: {
-                        type: "pkcs1",
-                        format: "pem",
-                    },
-                    privateKeyEncoding: {
-                        type: "pkcs1",
-                        format: "pem",
-                    },
-                });
+                const privateKey = crypto.randomBytes(64).toString("hex");
+                const publicKey = crypto.randomBytes(64).toString("hex");
+                const createKeyToken = await KeyTokenService.createKeyToken({ userId: newShop._id, publicKey, privateKey });
 
-                const publicKeyString = await KeyTokenService.createKeyToken({ userId: newShop._id, publicKey: publicKey });
-
-                if (!publicKeyString) {
+                if (!createKeyToken) {
                     return {
-                        code: "xxxx",
-                        message: "publicKeyString error",
+                        code: "401",
+                        message: "createKeyToken error",
                     };
                 }
 
-                //luu va db thi luu dang string => khi su dung chuyen sang dang object de ma hoa
-                const publicKeyObject = crypto.createPublicKey(publicKeyString);
-                const tokens = await createTokenPair({ userId: newShop._id, email }, publicKeyObject, privateKey);
+                const tokens = await createTokenPair({ userId: newShop._id, email }, publicKey, privateKey);
+
                 return {
                     code: 201,
                     metadata: {
-                        shop: newShop,
+                        shop: getInforData({ fileds: ["_id", "name", "email"], object: newShop }),
                         tokens,
                     },
                 };
@@ -65,7 +84,7 @@ class AccessService {
             };
         } catch (e) {
             return {
-                code: "xxx",
+                code: "500",
                 message: e.message,
                 status: "error",
             };

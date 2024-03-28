@@ -2,12 +2,35 @@ const AccessService = require("../services/access.service");
 
 class AccessController {
 
-    static login = async(req, res, next) => {
-        const result = await AccessService.login(req.body);
-        return res.status(200).json({
-            code: "success",
-            metadata: result
-        });
+    static logout = async (req, res) => {
+        try {
+            const result = await AccessService.logout(req.keyStore);
+            return res.status(200).json({
+                code: "success",
+                metadata: result
+            });
+        } catch (err) {
+            return res.status(500).json({
+                code: "error",
+                metadata: err.message
+            });
+        }
+
+    }
+
+    static login = async (req, res) => {
+        try {
+            const result = await AccessService.login(req.body);
+            return res.status(200).json({
+                code: "success",
+                metadata: result
+            });
+        } catch (err) {
+            return res.status(500).json({
+                code: "error",
+                metadata: err.message
+            });
+        }
     }
 
     static signUp = async (req, res, next) => {

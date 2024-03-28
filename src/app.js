@@ -26,12 +26,12 @@ checkOverload();
 
 app.use("/", router);
 
-//handle error
-app.use((req, res, next) => {
-    const error = new Error('not found');
-    error.status = 404;
-    next(error);
-});
+// //handle error
+// app.use((req, res, next) => {
+//     const error = new Error('not found');
+//     error.status = 404;
+//     next(error);
+// });
 
 app.use((error, req, res, next) => {
     const statusCode = error.status || 500;

@@ -2,6 +2,20 @@ const AccessService = require("../services/access.service");
 
 class AccessController {
 
+    static handlerRefreshToken = async (req, res) => {
+        try {
+            return res.status(200).json({
+                code: "success",
+                metadata: await AccessService.handlerRefreshToken(req.body?.refreshToken)
+            });
+        } catch (err) {
+            return res.status(500).json({
+                code: "error",
+                metadata: err.message
+            });
+        }
+    }
+
     static logout = async (req, res) => {
         try {
             const result = await AccessService.logout(req.keyStore);
@@ -15,7 +29,6 @@ class AccessController {
                 metadata: err.message
             });
         }
-
     }
 
     static login = async (req, res) => {

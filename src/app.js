@@ -1,42 +1,45 @@
 const compression = require("compression");
 const express = require("express");
 const { default: helmet } = require("helmet");
-const app = express();
 const morgan = require("morgan");
 const { checkOverload } = require("./helpers/check-connection");
 const router = require("./routes/index");
-//hien thi chi tiet response tra ve
+const app = express();
+
+//hiển thị chi tiết response trả về
 app.use(morgan("dev"));
-//protected infomation khong bi lo thong tin api
+
+//protected thông tin không bị lộ thông tin api trên website
 app.use(helmet());
+
 // su dung comppression giam kichs thuoc van chuyen du lieu cho client
 app.use(compression());
-app.use(express.json());
-app.use(
-    express.urlencoded({
-        extended: true,
-    })
-);
-//init middleware
-//init db => khong can dong connect lien tuc vi mongodb ho tro dong mo 1 cac linh hoat
-// muon disconnect thi su dung mongodb.disconnect
-require("./dbs/init.mongose");
-checkOverload();
-//init routes
 
+// không có thì sẽ không đọc được giá trị req.body
+app.use(express.json());
+
+app.use(express.urlencoded({ extended: true }));
+
+//init db => không cần đóng connect liên tục vì mongodb hỗ trợ đóng mở 1 cách linh hoạt - muốn disconnect thì sử dụng mongodb.disconnect
+require("./dbs/init.mongose");
+
+//kiểm tra kết nối database có bị quá tải không?
+checkOverload();
+
+//khai báo các router của dự án - init middleware trong các router
 app.use("/", router);
 
-// //handle error
-// app.use((req, res, next) => {
-//     const error = new Error('not found');
-//     error.status = 404;
-//     next(error);
-// });
+//handle error
+app.use((req, res, next) => {
+    const error = new Error('Not found');
+    error.status = 404;
+    next(error);
+});
 
 app.use((error, req, res, next) => {
     const statusCode = error.status || 500;
     return res.status(statusCode).json({
-        status: "error",
+        status: "Error",
         code: statusCode,
         message: error.message || "Internal Server Error",
     });

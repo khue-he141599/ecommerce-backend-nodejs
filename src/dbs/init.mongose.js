@@ -17,7 +17,7 @@ class Database {
                 // kiem tra xem co bao nhieu ket noi khong su dung thi lay de su dung cho tac vu khac khong can open va close thu cong
                 // se khong the vuot qua maxPoolSize,
                 // neu ma nhieu hon 50 connect thi connect tu 51 tro di se phai doi khi nao co connect free thi su dung
-                maxPoolSize: 100,
+                maxPoolSize: 100
             })
             .then(() => {
                 console.log("Connect succeeded with numConnections: ", countConnection());

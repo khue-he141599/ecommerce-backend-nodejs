@@ -4,13 +4,8 @@ const KeyTokenService = require("../services/keyToken.service");
 
 const createTokenPair = async (payload, publicKey, privateKey) => {
     try {
-        const accessToken = await JWT.sign(payload, publicKey, {
-            expiresIn: "2 days",
-        });
-
-        const refreshToken = await JWT.sign(payload, privateKey, {
-            expiresIn: "7 days",
-        });
+        const accessToken = await JWT.sign(payload, publicKey, { expiresIn: "2 days" });
+        const refreshToken = await JWT.sign(payload, privateKey, { expiresIn: "7 days" });
 
         JWT.verify(accessToken, publicKey, (err, decode) => {
             if (err) {
@@ -20,7 +15,9 @@ const createTokenPair = async (payload, publicKey, privateKey) => {
             }
         });
         return { accessToken, refreshToken };
-    } catch (e) { }
+    } catch (e) {
+
+    }
 };
 
 const authentication = asyncHandler(async (req, res, next) => {
@@ -49,7 +46,10 @@ const authentication = asyncHandler(async (req, res, next) => {
     } catch (err) {
         next(err);
     }
-
 })
 
-module.exports = { createTokenPair, authentication };
+const verifyJWT = async (token, keySecret) => {
+    return await JWT.verify(token, keySecret);
+}
+
+module.exports = { createTokenPair, authentication, verifyJWT };

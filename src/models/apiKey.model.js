@@ -10,16 +10,16 @@ var apiKeySchema = new Schema(
         key: {
             type: String,
             required: true,
-            unique: true,
+            unique: true
         },
         status: {
             type: String,
-            default: true,
+            default: true
         },
         permissions: {
             type: [String],
             required: true,
-            enum: ["0000", "0001", "0002"],
+            enum: ["0000", "0001", "0002"]
         },
     },
     { timestamps: true, collection: COLLECTION_NAME }

@@ -2,7 +2,7 @@ const shopModel = require("../models/shop.model");
 const bcrypt = require("bcrypt");
 const crypto = require("node:crypto");
 const KeyTokenService = require("./keyToken.service");
-const { createTokenPair } = require("../auth/authUtils");
+const { createTokenPair, verifyJWT } = require("../auth/authUtils");
 const { getInforData } = require("../utils");
 const { findByEmail } = require("./shop.service");
 
@@ -15,13 +15,47 @@ const RoleShop = {
 
 class AccessService {
 
+    static handlerRefreshToken = async (refreshToken) => {
+        const foundToken = await KeyTokenService.findByRefreshTokenUsed(refreshToken);
+        if (foundToken) {
+            const { userId, email } = await verifyJWT(refreshToken, foundToken.privateKey);
+            console.log({ userId, email });
+            await KeyTokenService.deleteKeyByUserId(userId);
+            throw new Error('Something went wrong! Please relogin');
+        }
+
+        const findByRefreshToken = await KeyTokenService.findByRefreshToken(refreshToken);
+        if (!findByRefreshToken) {
+            throw new Error('Refresh token is expired!');
+        }
+
+        const { userId, email } = await verifyJWT(refreshToken, findByRefreshToken.privateKey);
+        const foundShop = await findByEmail(email);
+        if (!foundShop) throw new Error('Shop is not registered!');
+
+        const token = await createTokenPair({ userId, email }, findByRefreshToken.publicKey, findByRefreshToken.privateKey);
+        await findByRefreshToken.updateOne({
+            $set: {
+                refreshToken: token.refreshToken
+            },
+            $addToSet: {
+                refreshTokensUsed: refreshToken
+            }
+        });
+
+        return {
+            user: { userId, email },
+            token
+        }
+    }
+
     static logout = async (keyStore) => {
         const delKey = await KeyTokenService.removeKeyById(keyStore._id);
         return delKey;
     }
 
     static login = async ({ email, password, refreshToken }) => {
-        const foundShop = await findByEmail({ email });
+        const foundShop = await findByEmail(email);
         if (!foundShop) {
             throw new Error("Shop not found");
         }
@@ -43,7 +77,7 @@ class AccessService {
             code: 201,
             metadata: {
                 shop: getInforData({ fileds: ["_id", "name", "email"], object: foundShop }),
-                tokens,
+                tokens
             },
         };
     };
@@ -54,7 +88,7 @@ class AccessService {
             if (shop) {
                 return {
                     code: "xxxx",
-                    message: "Shop already registered",
+                    message: "Shop already registered"
                 };
             }
 
@@ -69,7 +103,7 @@ class AccessService {
                 if (!createKeyToken) {
                     return {
                         code: "401",
-                        message: "createKeyToken error",
+                        message: "createKeyToken error"
                     };
                 }
 
@@ -79,7 +113,7 @@ class AccessService {
                     code: 201,
                     metadata: {
                         shop: getInforData({ fileds: ["_id", "name", "email"], object: newShop }),
-                        tokens,
+                        tokens
                     },
                 };
             }
@@ -92,7 +126,7 @@ class AccessService {
             return {
                 code: "500",
                 message: e.message,
-                status: "error",
+                status: "error"
             };
         }
     };

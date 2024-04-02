@@ -9,6 +9,7 @@ router.post("/shop/login", AccessController.login);
 router.use(authentication)
 
 router.post("/shop/logout", AccessController.logout);
+router.post("/shop/refreshToken", AccessController.handlerRefreshToken);
 
 
 module.exports = router;

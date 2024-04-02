@@ -2,7 +2,7 @@ const { findById } = require("../services/apiKey.service");
 
 const HEADER = {
     API_KEY: "x-api-key",
-    AUTHORIZATION: "athorization",
+    AUTHORIZATION: "athorization"
 };
 
 const apiKey = async (req, res, next) => {
@@ -11,32 +11,37 @@ const apiKey = async (req, res, next) => {
         if (!key) {
             return res.status(403).json({
                 code: 403,
-                message: "Forbidden Request",
+                message: "Forbidden Request"
             });
         }
         const objKey = await findById(key);
         if (!objKey) {
             return res.status(403).json({
                 code: 403,
-                message: "Forbidden Request",
+                message: "Forbidden Request"
             });
         }
         req.objKey = objKey;
         return next();
-    } catch (err) {}
+    } catch (err) {
+        return res.status(500).json({
+            code: 'error',
+            message: err.message
+        });
+    }
 };
 
 const permissions = (permission) => {
     return (req, res, next) => {
         if (!req.objKey.permissions) {
             return res.status(403).json({
-                message: "Permissions denied",
+                message: "Permissions denied"
             });
         }
 
         if (!req.objKey.permissions.includes(permission)) {
             return res.status(403).json({
-                message: "Permissions denied",
+                message: "Permissions denied"
             });
         }
         return next();

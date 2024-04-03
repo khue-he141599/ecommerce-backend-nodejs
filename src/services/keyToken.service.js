@@ -28,6 +28,13 @@ class KeyTokenService {
         return await keytokenModel.findOne({ refreshToken: refreshToken });
     }
 
+    static findOneAndUpdate = async (userId, dataUpdate) => {
+        const filter = { user: userId };
+        const update = dataUpdate;
+        const options = { upsert: true, new: true };
+        const tokens = await keytokenModel.findOneAndUpdate(filter, update, options);
+    }
+    
     static findByRefreshTokenUsed = async (refreshToken) => {
         return await keytokenModel.findOne({ refreshTokensUsed: refreshToken });
     }

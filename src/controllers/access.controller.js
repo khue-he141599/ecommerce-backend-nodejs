@@ -6,7 +6,7 @@ class AccessController {
         try {
             return res.status(200).json({
                 code: "success",
-                metadata: await AccessService.handlerRefreshToken(req.body?.refreshToken)
+                metadata: await AccessService.handlerRefreshToken(req)
             });
         } catch (err) {
             return res.status(500).json({

@@ -15,33 +15,33 @@ const RoleShop = {
 
 class AccessService {
 
-    static handlerRefreshToken = async (refreshToken) => {
-        const foundToken = await KeyTokenService.findByRefreshTokenUsed(refreshToken);
-        if (foundToken) {
-            const { userId, email } = await verifyJWT(refreshToken, foundToken.privateKey);
-            console.log({ userId, email });
+    static handlerRefreshToken = async (req) => {
+        const { refreshTokensUsed, privateKey, publicKey, refreshToken } = req.keyStore;
+        const refreshTokeHeader = req.refreshToken;
+        const { userId, email } = req.user;
+
+        if (refreshTokensUsed.includes(refreshToken)) {
             await KeyTokenService.deleteKeyByUserId(userId);
             throw new Error('Something went wrong! Please relogin');
         }
 
-        const findByRefreshToken = await KeyTokenService.findByRefreshToken(refreshToken);
-        if (!findByRefreshToken) {
+        if (refreshToken !== refreshTokeHeader) {
             throw new Error('Refresh token is expired!');
         }
 
-        const { userId, email } = await verifyJWT(refreshToken, findByRefreshToken.privateKey);
         const foundShop = await findByEmail(email);
         if (!foundShop) throw new Error('Shop is not registered!');
 
-        const token = await createTokenPair({ userId, email }, findByRefreshToken.publicKey, findByRefreshToken.privateKey);
-        await findByRefreshToken.updateOne({
+        const token = await createTokenPair({ userId, email }, publicKey, privateKey);
+        const dataUpdate = {
             $set: {
                 refreshToken: token.refreshToken
             },
             $addToSet: {
-                refreshTokensUsed: refreshToken
+                refreshTokensUsed: refreshTokeHeader
             }
-        });
+        }
+        await KeyTokenService.findOneAndUpdate(userId, dataUpdate);
 
         return {
             user: { userId, email },
@@ -96,25 +96,11 @@ class AccessService {
             const newShop = await shopModel.create({ name, email, password: hashPassword, roles: [RoleShop.SHOP] });
 
             if (newShop) {
-                const privateKey = crypto.randomBytes(64).toString("hex");
-                const publicKey = crypto.randomBytes(64).toString("hex");
-                const createKeyToken = await KeyTokenService.createKeyToken({ userId: newShop._id, publicKey, privateKey });
-
-                if (!createKeyToken) {
-                    return {
-                        code: "401",
-                        message: "createKeyToken error"
-                    };
-                }
-
-                const tokens = await createTokenPair({ userId: newShop._id, email }, publicKey, privateKey);
-
                 return {
                     code: 201,
                     metadata: {
                         shop: getInforData({ fileds: ["_id", "name", "email"], object: newShop }),
-                        tokens
-                    },
+                    }
                 };
             }
 

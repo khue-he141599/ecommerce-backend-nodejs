@@ -24,7 +24,7 @@ app.use(express.urlencoded({ extended: true }));
 require("./dbs/init.mongose");
 
 //kiểm tra kết nối database có bị quá tải không?
-checkOverload();
+// checkOverload();
 
 //khai báo các router của dự án - init middleware trong các router
 app.use("/", router);

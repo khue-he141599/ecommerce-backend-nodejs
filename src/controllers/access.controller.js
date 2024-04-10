@@ -60,5 +60,4 @@ class AccessController {
     };
 }
 
-
 module.exports = AccessController;

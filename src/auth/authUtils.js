@@ -65,7 +65,7 @@ const authentication_v2 = asyncHandler(async (req, res, next) => {
         });
     }
 
-    const refreshToken = req.headers['refresh-token'];
+    const refreshToken = req.headers['refreshToken'];
     if (refreshToken) {
         try {
             const decodeUser = JWT.decode(refreshToken, keyStore.privateKey);
@@ -78,6 +78,27 @@ const authentication_v2 = asyncHandler(async (req, res, next) => {
             req.keyStore = keyStore;
             req.user = decodeUser;
             req.refreshToken = refreshToken;
+            return next();
+        } catch (e) {
+            return res.status(500).json({
+                code: 'error',
+                message: 'Internal Server Error',
+            });
+        }
+    }
+
+    const accessToken = req.headers['authorization'];
+    if (accessToken) {
+        try {
+            const decodeUser = JWT.decode(accessToken, keyStore.publicKey);
+            if (userId != decodeUser.userId) {
+                return res.status(401).json({
+                    code: 'error',
+                    message: 'Invalid user'
+                });
+            }
+            req.keyStore = keyStore;
+            req.user = decodeUser;
             return next();
         } catch (e) {
             return res.status(500).json({

@@ -6,7 +6,7 @@ class ProductController {
       try {
          return res.status(200).json({
             code: "success",
-            metadata: await ProductService.createProduct(req.body.product_type, req.body);
+            metadata: await ProductService.createProduct(req.body.product_type, { ...req.body, product_shop: req.user.userId })
          });
       } catch (err) {
          return res.status(500).json({

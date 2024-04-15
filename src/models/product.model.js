@@ -21,13 +21,13 @@ const clothingSchema = new Schema({
    brand: { type: String, required: true },
    size: { type: String },
    material: { type: String }
-}, { collection: 'clothes', timestamps: true });
+}, { collection: 'Clothes', timestamps: true });
 
 const electronicSchema = new Schema({
    manufacturer: { type: String, required: true },
    model: { type: String },
    color: { type: String }
-}, { collection: 'electronics', timestamps: true });
+}, { collection: 'Electronics', timestamps: true });
 
 
 module.exports = {

@@ -20,18 +20,28 @@ const productSchema = new Schema({
 const clothingSchema = new Schema({
    brand: { type: String, required: true },
    size: { type: String },
-   material: { type: String }
+   material: { type: String },
+   product_shop: { type: Schema.Types.ObjectId}
 }, { collection: 'Clothes', timestamps: true });
 
 const electronicSchema = new Schema({
    manufacturer: { type: String, required: true },
    model: { type: String },
-   color: { type: String }
+   color: { type: String },
+   product_shop: { type: Schema.Types.ObjectId}
 }, { collection: 'Electronics', timestamps: true });
+
+const furnitureSchema = new Schema({
+   brand: { type: String, required: true },
+   size: { type: String },
+   meterial: { type: String },
+   product_shop: { type: Schema.Types.ObjectId}
+}, { collection: 'Furnitures', timestamps: true });
 
 
 module.exports = {
    product: model(DOCUMENT_NAME, productSchema),
    clothing: model('Clothes', clothingSchema),
    electronic: model('Electonics', electronicSchema),
+   furnitures: model('Furnitures', furnitureSchema),
 }
